@@ -48,7 +48,8 @@ std::vector<std::string> getImageName(std::string dir_name) {
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
 	int combo = 0;				//コンボ
-	double bpm;
+	std::vector<double> bpm;
+	std::vector<int> bpm_mea;
 	double LLine, RLine;
 
 	LONGLONG start_time = 0; //開始した時刻
@@ -251,19 +252,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::vector<std::vector<std::string>> scorenum2;
 	std::vector<int> mea2;
 
-	int y = 0, z = 0;
+	int bpmC = 0, bpmC2 = 0,  y = 0, z = 0;
 	scorecode2.resize(1);
 	scorenum2.resize(1);
 	scorenum2[0].resize(2);
 	mea2.resize(1);
 
 	//譜面ファイルの読み込み
+	bool bpmGL = false;
 	while (std::getline(scorefile, score_buffer2)) {
 		if (z == 15) {
-			bpm = stod(score_buffer2.substr(8));
+			bpm.resize(1);
+			bpm[0] = stod(score_buffer2.substr(8));
+			bpmGL = true;
+			bpmC++;
+		}
+		else if (bpmGL) {
+			if (score_buffer2.substr(0, 4) == "#BPM") {
+				bpm.resize(bpmC + 1);
+				bpm[bpmC] = stod(score_buffer2.substr(8));
+				bpmC++;
+			}
+			else {
+				bpmGL = false;
+			}
 		}
 
-		if (21 < z) {
+		if (15 + bpmC <= z && z <= 15 + bpmC * 2 - 1) {
+			bpm_mea.resize(bpmC2 + 1);
+			bpm_mea[bpmC2] = atoi(score_buffer2.substr(1, 3).c_str());
+			bpmC2++;
+		}
+
+		if (19 + bpmC * 2 < z) {
 			scorecode2.resize(y + 1);
 			scorenum2.resize(y + 1);
 			for (int i = 0; y + 1 > i; i++) {
@@ -288,6 +309,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	const int scoreline = mea2.size();
 
 	double offset = 0;
+
+	printfDx("%lf\n", bpm[0]);
+	printfDx("%lf\n", bpm[1]);
 
 	//譜面情報の並び替え
 	int tmp2; std::string tmp3;
@@ -316,10 +340,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::vector<int> notekinds;
 	std::vector<int> holdnum;
 
-	int n = 0, o = 0;
+	int d = -1, n = 0, o = 0;
+	double mea_t_ad = 0;
 	//譜面ファイル情報からノーツ情報を読み取る
 	for (int i = 0; mea2[scoreline - 1] >= i; i++) {
 		for (int k = n; mea2[k] == i; k++) {
+			
+			if (bpm_mea.size() > d + 1) {
+				if (bpm_mea[d + 1] == mea2[k]) {
+					d++;
+				}
+			}
+			
 			for (int m = 0; scorenum2[n][1].size() / 2 > m; m++) {
 
 				score_buffer2 = scorenum2[n][1].substr(m * 2, 2);
@@ -332,7 +364,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					noteinfo.resize(o + 1);
 					noteinfo[o].resize(3);
 
-					noteinfo[o][0] = (double)m / (double)scorenum2[n][1].size() * (double)2 * (double)240 / bpm + (double)mea2[k] * ((double)240 / bpm);	//ノーツのタイミング計算
+					noteinfo[o][0] = (double)m / (double)scorenum2[n][1].size() * 2.0 * 240.0 / bpm[d] + mea_t_ad;	//ノーツのタイミング計算
 
 					score_buffer2 = scorenum2[n][0].substr(4, 1);
 					noteinfo[o][1] = strtol(score_buffer2.c_str(), NULL, 16);												//ノーツの左端の位置
@@ -398,6 +430,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 
 		}
+		mea_t_ad += (double)240 / bpm[d]; 
+		//printfDx("%lf\n", mea_t_ad);
 	}
 
 	const int note = o;	//ノーツの総数
