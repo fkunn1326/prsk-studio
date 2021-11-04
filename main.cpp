@@ -50,6 +50,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int combo = 0;				//コンボ
 	std::vector<double> bpm;
 	std::vector<int> bpm_mea;
+	double beat;
 	double LLine, RLine;
 
 	LONGLONG start_time = 0; //開始した時刻
@@ -194,14 +195,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (CheckHitKey(KEY_INPUT_RETURN) == 1) {}
 
-	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
+	std::vector<int> jacket_vec;
+	std::string jacket_buf;
+	jacket_vec.resize(music_total);
+	for (int i = 0; music_total > i; i++) {
+		jacket_buf = "jacket_image/" + musicname[i] + ".png";
+		jacket_vec[i] = LoadGraph(jacket_buf.c_str());
+	}
 
-		std::string jacket_d = "jacket_image/" + musicname[f % music_total] + ".png";
-		int jacket = LoadGraph(jacket_d.c_str());
+	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
 
 		DrawGraph(0, 0, title_image, true);
 		DrawRotaGraph(319, 360, 0.44, 0, music_select_back, true);
-		DrawExtendGraph(637, 38, 1280, 682, jacket, true);
+		DrawExtendGraph(637, 38, 1280, 682, jacket_vec[f % music_total], true);
 
 		DrawStringToHandle(100, 345, musicname[f % music_total].c_str(), GetColor(255, 255, 255), mnf);
 		DrawStringToHandle(100, 245, musicname[(f + 1) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
@@ -251,16 +257,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::vector<std::string> scorecode2;
 	std::vector<std::vector<std::string>> scorenum2;
 	std::vector<int> mea2;
+	
 
-	int bpmC = 0, bpmC2 = 0,  y = 0, z = 0;
+	int bpmC = 0, bpmC2 = 0,  y = 0, z = 0, hi_c = 0;
 	scorecode2.resize(1);
 	scorenum2.resize(1);
 	scorenum2[0].resize(2);
 	mea2.resize(1);
 
 	//譜面ファイルの読み込み
-	bool bpmGL = false;
+	bool bpmGL = false, hisp = false;
 	while (std::getline(scorefile, score_buffer2)) {
+		if (z == 13) {
+			beat = stod(score_buffer2.substr(8));
+		}
+
 		if (z == 15) {
 			bpm.resize(1);
 			bpm[0] = stod(score_buffer2.substr(8));
@@ -306,12 +317,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		z++;
 	}
 
+	
+
 	const int scoreline = mea2.size();
 
 	double offset = 0;
-
-	printfDx("%lf\n", bpm[0]);
-	printfDx("%lf\n", bpm[1]);
 
 	//譜面情報の並び替え
 	int tmp2; std::string tmp3;
@@ -340,14 +350,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	std::vector<int> notekinds;
 	std::vector<int> holdnum;
 
-	int d = -1, n = 0, o = 0;
+	int d = 1, n = 0, o = 0;
 	double mea_t_ad = 0;
 	//譜面ファイル情報からノーツ情報を読み取る
 	for (int i = 0; mea2[scoreline - 1] >= i; i++) {
+
 		for (int k = n; mea2[k] == i; k++) {
 			
-			if (bpm_mea.size() > d + 1) {
-				if (bpm_mea[d + 1] == mea2[k]) {
+			if (bpm_mea.size() > d) {
+				if (bpm_mea[d] == mea2[k]) {
 					d++;
 				}
 			}
@@ -364,7 +375,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					noteinfo.resize(o + 1);
 					noteinfo[o].resize(3);
 
-					noteinfo[o][0] = (double)m / (double)scorenum2[n][1].size() * 2.0 * 240.0 / bpm[d] + mea_t_ad;	//ノーツのタイミング計算
+					noteinfo[o][0] = (double)m / (double)scorenum2[n][1].size() / 2.0 * 4.0 * 240.0 / bpm[d - 1] * beat / 4.0 + mea_t_ad;	//ノーツのタイミング計算
 
 					score_buffer2 = scorenum2[n][0].substr(4, 1);
 					noteinfo[o][1] = strtol(score_buffer2.c_str(), NULL, 16);												//ノーツの左端の位置
@@ -430,14 +441,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 
 		}
-		mea_t_ad += (double)240 / bpm[d]; 
+		mea_t_ad += 240.0 / bpm[d - 1] * beat / 4.0;
 		//printfDx("%lf\n", mea_t_ad);
 	}
 
 	const int note = o;	//ノーツの総数
 
 	std::vector<bool> note_f;	//ノーツの存在フラグ
-	std::vector<float> note_y;	//ノーツのy座標
+	std::vector<double> note_y;	//ノーツのy座標
 	std::vector<double> note_m;	//ノーツの倍率
 	note_f.resize(note);
 	note_y.resize(note);
@@ -679,7 +690,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	std::vector<double> hold_m_long;
 	std::vector<bool> hold_m_f;
-	std::vector<float> hold_m_y;
+	std::vector<double> hold_m_y;
 	std::vector<double> hold_m_m;
 
 	std::vector<bool> hold_s_f;
@@ -1070,17 +1081,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		effect_k[i] = 0;
 	}
 
-
 	SetFontSize(40);
 	int StrLen = strlen(musicname[f % music_total].c_str());
 	int StrWidth = GetDrawStringWidth(musicname[f % music_total].c_str(), StrLen);
 	int musicFont = CreateFontToHandle("FOT-ロダンNTLG Pro DB", 40, -1, DX_FONTTYPE_ANTIALIASING_8X8);
 	SetFontSize(20);
-	std::string mstr = "作詞：ー　作曲：ー　編曲：ー";
+	std::string mstr = "作詞：-　作曲：-　編曲：-";
 	int StrLen2 = strlen(mstr.c_str());
 	int StrWidth2 = GetDrawStringWidth(mstr.c_str(), StrLen2);
 	int musicFont2 = CreateFontToHandle("FOT-ロダンNTLG Pro DB", 20, -1, DX_FONTTYPE_ANTIALIASING_8X8);
-	std::string mstr2 = "歌：ー";
+	std::string mstr2 = "歌：-";
 	int StrLen3 = strlen(mstr2.c_str());
 	int StrWidth3 = GetDrawStringWidth(mstr2.c_str(), StrLen3);
 	int white = GetColor(255, 255, 255);
@@ -1180,49 +1190,52 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	int u = 0, judgeT = 0, log[16], arrow_size, arrowTime, ar, thick, thick2, thick3;
 	float judgeF = 0.f, comboF = 0.f;
-	bool mu = true, loop[5], lm[2] = { false, false };
+	bool mu = true, loop[5], lm[2] = { false, false }, ef_f = true;
 	for (int i = 0; 5 > i; i++) { loop[i] = true; }
 	counter = 0;
 	double hLLine, hRLine, mm, mmm;
 	std::vector<int> f_ar;
 
 	int counter2 = 0, counter3 = 0, counter4 = 0, counter5 = 0, counter6 = 0, counter7 = 0, counter8 = 0, ct = 0, ct2 = 0, long_ef[16];
+
+	int hi_c3 = 0;
+	double HiSpeed = 1.0;
+
 	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
 		//時間関係
 		if (start_time == 0) {
-			start_time = GetNowHiPerformanceCount();
+			start_time = GetNowHiPerformanceCount() + 1000000;
 		}
 		now_time = GetNowHiPerformanceCount();
 		currentTime = (int)((now_time - start_time) / 1000); // 単位[ms]
 
 		arrowTime = currentTime % 500;
 
-		if (currentTime >= 1000 + offset && mu) {						//音楽再生
+		if (currentTime >= offset && mu) {						//音楽再生
 			PlaySoundMem(music, DX_PLAYTYPE_BACK);
 			mu = false;
 		}
 
 		//ノーツ生成
-		if (currentTime >= 1000 * 60 / 240 * counter / interval && loop[0]) {
-			while (noteinfo[counter][0] * 1000 <= currentTime) {
-				note_f[counter] = true;
-				note_y[counter] = 0.f;
-				note_m[counter] = 0.08;
+		
+		
+		while (noteinfo[counter][0] * 1000 - 1000 <= currentTime) {
+			note_f[counter] = true;
+			note_y[counter] = 0.f;
+			note_m[counter] = 0.08;
 
-				if (note > counter + 1) {
-					counter++;
-				}
-				else {
-					loop[0] = false;
-					break;
-				}
+			if (note > counter + 1) {
+				counter++;
 			}
-
+			else {
+				loop[0] = false;
+				break;
+			}
 		}
 
 		for (int i = 0; 16 > i; i++) { log[i] = -1; }
 		if (hold_m_info.size() != 0) {
-			while (hold_m_info[counter2] * 1000 <= currentTime) {
+			while (hold_m_info[counter2] * 1000 - 1000 <= currentTime) {
 				hold_m_f[counter2] = true;
 				hold_m_y[counter2] = 3.82f;
 
@@ -1234,7 +1247,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					break;
 				}
 			}
-			while (hold_m_info[counter3] * 1000 + 1000 <= currentTime) {
+			while (hold_m_info[counter3] * 1000 <= currentTime) {
 
 				if (hold_m_info.size() > counter3 + 1) {
 					log[hold_m_num[counter3]] = counter3;
@@ -1268,8 +1281,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		for (int j = counter4; counter2 > j; j++) {
 			if (hold_m_f[j]) {
 
-				hold_m_m[j] = pow(((double)currentTime - hold_m_info[j] * 1000), 2.0) * 23 / 25000000 + 0.08;
-				hold_m_y[j] = pow(((float)currentTime - (float)hold_m_info[j] * 1000), 2.0) * 3 / 6250;
+				hold_m_m[j] = pow(((double)currentTime - (hold_m_info[j] * 1000 - 1000)), 2.0) * 23 / 25000000 + 0.08;
+				hold_m_y[j] = pow(((double)currentTime - (hold_m_info[j] * 1000 - 1000)), 2.0) * 3 / 6250;
 
 				if (hold_m_y[j] > 480) {
 					hold_m_f[j] = false;
@@ -1345,9 +1358,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		for (int j = counter5; counter + 1 > j; j++) {
 			if (note_f[j]) {
 
-				note_m[j] = ((double)currentTime - noteinfo[j][0] * 1000) * ((double)currentTime - noteinfo[j][0] * 1000) * 23 / 25000000 + 0.08;
-				note_y[j] = ((float)currentTime - (float)noteinfo[j][0] * 1000) * ((float)currentTime - (float)noteinfo[j][0] * 1000) * 3 / 6250;
-
+				note_m[j] = pow(((double)currentTime - (noteinfo[j][0] * 1000 - 1000)), 2.0) * 23 / 25000000 + 0.08;
+				note_y[j] = pow(((double)currentTime - (noteinfo[j][0] * 1000 - 1000)), 2.0) * 3 / 6250;
+				
 				if (note_y[j] > 470) {
 
 					note_f[j] = false;	//判定ラインを過ぎたらfalse
@@ -1605,38 +1618,42 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			}
 		}
 
-		if (note > i) {
+		if (ef_f) {
 			for (int i = counter7; counter6 + 1 > i; i++) {
-				if (currentTime - (noteinfo[i][0] * 1000 + 1000) <= 250) {
+				if (note <= i) {
+					ef_f = false;
+					break;
+				}
+				if (currentTime - (noteinfo[i][0] * 1000) <= 250) {
 
 					LLine = noteinfo[i][1] - (double)8, RLine = noteinfo[i][1] + noteinfo[i][2] - (double)8;
 
 					double height, width_m;
 
-					if (currentTime - (noteinfo[i][0] * 1000 + 1000) <= 100) {
-						height = 313 * (currentTime - (noteinfo[i][0] * 1000 + 1000)) / 100;
+					if (currentTime - (noteinfo[i][0] * 1000) <= 100) {
+						height = 313 * (currentTime - (noteinfo[i][0] * 1000)) / 100;
 						thick = 255;
 					}
-					else if (currentTime - (noteinfo[i][0] * 1000 + 1000) > 100) {
+					else if (currentTime - (noteinfo[i][0] * 1000) > 100) {
 						height = 313;
-						thick = -17 * (currentTime - (noteinfo[i][0] * 1000 + 1000)) / 10 + 1275 / 3;
+						thick = -17 * (currentTime - (noteinfo[i][0] * 1000)) / 10 + 1275 / 3;
 					}
 
-					if (currentTime - (noteinfo[i][0] * 1000 + 1000) <= 250 / 3) {
-						thick2 = 3.06 * (currentTime - (noteinfo[i][0] * 1000 + 1000));
+					if (currentTime - (noteinfo[i][0] * 1000) <= 250 / 3) {
+						thick2 = 3.06 * (currentTime - (noteinfo[i][0] * 1000));
 					}
-					else if (currentTime - (noteinfo[i][0] * 1000 + 1000) >= 250 / 3 && currentTime - (noteinfo[i][0] * 1000 + 1000) <= 500 / 3) {
+					else if (currentTime - (noteinfo[i][0] * 1000) >= 250 / 3 && currentTime - (noteinfo[i][0] * 1000) <= 500 / 3) {
 						thick2 = 255;
 					}
-					else if (currentTime - (noteinfo[i][0] * 1000 + 1000) >= 500 / 3) {
-						thick2 = -3.06 * (currentTime - (noteinfo[i][0] * 1000 + 1000)) + 765;
+					else if (currentTime - (noteinfo[i][0] * 1000) >= 500 / 3) {
+						thick2 = -3.06 * (currentTime - (noteinfo[i][0] * 1000)) + 765;
 					}
-					width_m = -0.024 * (currentTime - (noteinfo[i][0] * 1000 + 1000)) + 4.5;
+					width_m = -0.024 * (currentTime - (noteinfo[i][0] * 1000)) + 4.5;
 
-					if (currentTime - (noteinfo[i][0] * 1000 + 1000) <= 400) {
-						mm = 0.1 * pow((currentTime - (noteinfo[i][0] * 1000 + 1000)), 0.5);
-						mmm = 0.25 * pow((currentTime - (noteinfo[i][0] * 1000 + 1000)), 0.5);
-						thick3 = -0.00159375 * pow((currentTime - (noteinfo[i][0] * 1000 + 1000)), 2.0) + 255;
+					if (currentTime - (noteinfo[i][0] * 1000) <= 400) {
+						mm = 0.1 * pow((currentTime - (noteinfo[i][0] * 1000)), 0.5);
+						mmm = 0.25 * pow((currentTime - (noteinfo[i][0] * 1000)), 0.5);
+						thick3 = -0.00159375 * pow((currentTime - (noteinfo[i][0] * 1000)), 2.0) + 255;
 					}
 
 					double ef_x1 = 640 + 80 * LLine + height / 17 * LLine;
@@ -1738,7 +1755,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					counter7++;
 				}
 				if (note <= i + 1) {
-					counter6 -= 1;
+					//counter6 -= 1;
 					break;
 				}
 
