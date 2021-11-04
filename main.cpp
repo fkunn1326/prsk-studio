@@ -80,6 +80,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	int text_master = LoadGraph("images/text_master.png");
 	int light = LoadGraph("images/light.png");
 	int now_loading = LoadGraph("images/now_loading.png");
+	int back2 = LoadGraph("images/back2.png");
+	int diff = LoadGraph("images/diff.png");
 
 	int combonum[10];
 	combonum[0] = LoadGraph("images/text_combo_0.png");
@@ -205,17 +207,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	while (ScreenFlip() == 0 && ProcessMessage() == 0 && ClearDrawScreen() == 0) {
 
-		DrawGraph(0, 0, title_image, true);
-		DrawRotaGraph(319, 360, 0.44, 0, music_select_back, true);
-		DrawExtendGraph(637, 38, 1280, 682, jacket_vec[f % music_total], true);
+		DrawExtendGraph(0, 0, 1280, 720, back2, true);
+		DrawExtendGraph(785, 112, 1280, 607, jacket_vec[f % music_total], true);
+		DrawExtendGraph(785, 112, 1280, 607, diff, true);
 
-		DrawStringToHandle(100, 345, musicname[f % music_total].c_str(), GetColor(255, 255, 255), mnf);
-		DrawStringToHandle(100, 245, musicname[(f + 1) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
-		DrawStringToHandle(100, 145, musicname[(f + 2) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
-		DrawStringToHandle(100, 45, musicname[(f + 3) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
-		DrawStringToHandle(100, 475, musicname[(f - 1) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
-		DrawStringToHandle(100, 575, musicname[(f - 2) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
-		DrawStringToHandle(100, 675, musicname[(f - 3) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
+		DrawExtendGraph(264, 120, 329, 185, jacket_vec[(f + 2) % music_total], true);
+		DrawExtendGraph(264, 216, 329, 281, jacket_vec[(f + 1) % music_total], true);
+		DrawExtendGraph(264, 441, 329, 506, jacket_vec[(f - 1) % music_total], true);
+		DrawExtendGraph(264, 535, 329, 600, jacket_vec[(f - 2) % music_total], true);
+
+		DrawStringToHandle(350, 315, musicname[f % music_total].c_str(), GetColor(255, 255, 255), mnf);
+		DrawStringToHandle(350, 225, musicname[(f + 1) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
+		DrawStringToHandle(350, 125, musicname[(f + 2) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
+		DrawStringToHandle(350, 445, musicname[(f - 1) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
+		DrawStringToHandle(350, 545, musicname[(f - 2) % music_total].c_str(), GetColor(255, 255, 255), mnf2);
 
 		if (CheckHitKey(KEY_INPUT_RETURN) == 1) {
 			break;
