@@ -68,6 +68,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return -1;			// エラーが起きたら直ちに終了
 	}
 
+	SetDXArchiveKeyString("shfspica1005");
+
 	int back = LoadGraph("images/back.png");	//画像読み込み
 	int bg_bk = LoadGraph("images/bg_bk.png");
 	int line = LoadGraph("images/line.png");
@@ -326,7 +328,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	const int scoreline = mea2.size();
 
-	double offset = 0;
+	double offset = 0.02;
 
 	//譜面情報の並び替え
 	int tmp2; std::string tmp3;
