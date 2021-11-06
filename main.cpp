@@ -92,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	combonum[9] = LoadGraph("images/text_combo_9.png");
 	int combotxt = LoadGraph("images/text_combo.png");
 
-	int Nnote_l = LoadGraph("images/note_left.PNG");	//ÉmÅ[Écì«Ç›çûÇ›
+	int Nnote_l = LoadGraph("images/note_left.PNG");
 	int Nnote_c = LoadGraph("images/note_center2.PNG");
 	int Nnote_r = LoadGraph("images/note_right.PNG");
 
