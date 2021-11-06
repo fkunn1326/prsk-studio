@@ -1,6 +1,7 @@
 #include <iostream>
 #include <filesystem>
 #include "DxLib.h"
+#include "header.h"
 #include <cstdlib>
 #include <string>
 #include <fstream>
@@ -19,27 +20,20 @@ std::vector<std::string> getImageName(std::string dir_name) {
 	WIN32_FIND_DATA win32fd;
 	std::vector<std::string> file_names;
 
-	// png,jpg,bmpの拡張子のファイルのみを読み込む
-	std::string extension[1] = { "txt" };
+	std::string extension = "txt";
 
-	for (int i = 0; i < 1; i++) {
+	std::string search_name = dir_name + "*." + extension;
+	hFind = FindFirstFile(search_name.c_str(), &win32fd);
 
-		std::string search_name = dir_name + "*." + extension[i];
-		hFind = FindFirstFile(search_name.c_str(), &win32fd);
-
-		if (hFind == INVALID_HANDLE_VALUE) {
-			continue;
+	do {
+		if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 		}
-		do {
-			if (win32fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-			}
-			else {
-				file_names.push_back(win32fd.cFileName);
-			}
-		} while (FindNextFile(hFind, &win32fd));
-
-		FindClose(hFind);
-	}
+		else {
+			file_names.push_back(win32fd.cFileName);
+		}
+	} while (FindNextFile(hFind, &win32fd));
+	FindClose(hFind);
+	
 	return file_names;
 }
 
@@ -68,7 +62,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return -1;			// エラーが起きたら直ちに終了
 	}
 
-	SetDXArchiveKeyString("shfspica1005");
+	SetDXArchiveKeyString(assetsK().c_str());
 
 	int back = LoadGraph("images/back.png");	//画像読み込み
 	int bg_bk = LoadGraph("images/bg_bk.png");
