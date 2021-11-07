@@ -21,7 +21,7 @@
 1,譜面ファイル作成  
   Ryo namiki(paralleltree)様のウニ創作譜面エディタ「Ched」を使って譜面を作成します。  
   詳しい作成方法はこちら（ https://potato.purplepalette.net/help/create-sonolus-fumen/ ）とほぼ同じですが、  
-  3本以上のスライドとスライドの始点・終点の重なりに対応しています。  
+  3本以上のスライド、スライドの始点・終点の重なりに対応しています。  
   完成したら.sus形式で出力してください。  
   このファイルの名前が曲名として表示されます。  
     
@@ -34,7 +34,7 @@
   jacket_image/sample.png  
   songd/sample.mp3  
 
-3,再生
+3,再生  
   prsk-studio.exeを開き、追加した曲を選択してEnterキーを押すと再生が開始します。
   
   
