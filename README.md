@@ -10,7 +10,7 @@
 ――――――――――――――――――――――――――――――――  
 使用ツール：『prsk studio』  
   
-開発：shf_spica  
+開発：shf  
   Youtube：https://www.youtube.com/channel/UC6YSeOa2nfRLsoizJ6iB8Ig  
   Twitter：https://twitter.com/shf_spica  
 ――――――――――――――――――――――――――――――――  
