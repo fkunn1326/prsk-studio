@@ -11,7 +11,7 @@
 #include <math.h>
 #include <Windows.h>
 #include <stdexcept>
-
+#include <thread>
 
 
 std::vector<std::string> getImageName(std::string dir_name) {
