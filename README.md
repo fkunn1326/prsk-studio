@@ -32,7 +32,7 @@
   例）sampleという曲の場合  
   scorefile/sample.txt  
   jacket_image/sample.png  
-  songd/sample.mp3  
+  songs/sample.mp3  
 
 3,再生  
   prsk-studio.exeを開き、追加した曲を選択してEnterキーを押すと再生が開始します。
